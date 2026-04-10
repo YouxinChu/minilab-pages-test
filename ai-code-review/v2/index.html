@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="idea-slug" content="ai-code-review">
+<title>AI Code Review Agent — Who Reviews Your AI-Generated Code?</title>
+<meta name="description" content="Catch the bugs, security holes, and phantom author patterns that AI coding tools leave behind — before they hit production.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Instrument+Sans:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- GTM placeholder -->
+<script>window.dataLayer = window.dataLayer || [];</script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --text: #0A0A0A;
+  --text-muted: #6B7280;
+  --accent: #6366F1;
+  --accent-hover: #4F46E5;
+  --border: #E5E7EB;
+  --surface-alt: #F3F4F6;
+  --code-bg: #1E1E2E;
+  --code-text: #CDD6F4;
+  --code-green: #A6E3A1;
+  --code-red: #F38BA8;
+  --code-yellow: #F9E2AF;
+  --code-comment: #6C7086;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.125rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+h1, h2, h3 {
+  font-family: 'Instrument Sans', sans-serif;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.pill {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  letter-spacing: 0.02em;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+  transform: translateY(-1px);
+}
+
+/* ── Animate on scroll ── */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.animate-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Code block (recurring pattern) ── */
+.code-block {
+  background: var(--code-bg);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: var(--code-text);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.code-block .line-add { color: var(--code-green); }
+.code-block .line-del { color: var(--code-red); background: rgba(243,139,168,0.08); display: block; margin: 0 -28px; padding: 0 28px; }
+.code-block .line-warn { color: var(--code-yellow); }
+.code-block .line-comment { color: var(--code-comment); }
+.code-block .line-num { color: var(--code-comment); user-select: none; display: inline-block; width: 2.5em; text-align: right; margin-right: 1.5em; }
+
+/* ── Section bands ── */
+section { padding: 120px 0; }
+section.alt { background: var(--surface-alt); }
+section.dark-inset { background: var(--code-bg); color: var(--code-text); }
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.card:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* ── Email form ── */
+.email-form {
+  display: flex;
+  gap: 12px;
+  max-width: 480px;
+}
+.email-form input[type="email"] {
+  flex: 1;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.email-form input[type="email"]:focus {
+  border-color: var(--accent);
+}
+.form-message {
+  font-size: 0.875rem;
+  margin-top: 8px;
+  color: var(--accent);
+}
+
+/* ── Hero ── */
+.hero { padding: 160px 0 120px; text-align: center; }
+.hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 700;
+  max-width: 800px;
+  margin: 0 auto 24px;
+}
+.hero .subtitle {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  max-width: 640px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+.hero .email-form { margin: 0 auto; }
+
+/* ── Pain ── */
+.pain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+.pain-card .pain-number {
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: rgba(99, 102, 241, 0.15);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.pain-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.pain-card blockquote {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  border-left: 2px solid var(--accent);
+  padding-left: 16px;
+  margin: 16px 0;
+  font-style: italic;
+}
+.pain-card .source {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ── Steps ── */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 48px; }
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+.step h3 { font-size: 1.125rem; margin-bottom: 8px; }
+.step p { color: var(--text-muted); font-size: 1rem; }
+
+/* ── Stats ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
+  margin-top: 48px;
+  text-align: center;
+}
+.stat-value {
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ── Comparison table ── */
+.comparison-wrapper { overflow-x: auto; margin-top: 48px; }
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.comparison-table th, .comparison-table td {
+  padding: 14px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.comparison-table th {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+}
+.comparison-table th:last-child {
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.06);
+}
+.comparison-table td:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+.comparison-table td:last-child { background: rgba(99, 102, 241, 0.03); }
+
+/* ── Pricing ── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+.pricing-card { text-align: center; }
+.pricing-card.featured {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(99, 102, 241, 0.12);
+}
+.pricing-name {
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.pricing-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.pricing-features {
+  list-style: none;
+  text-align: left;
+  font-size: 0.9rem;
+}
+.pricing-features li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pricing-features li::before {
+  content: '✓';
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── FAQ ── */
+.faq-list { max-width: 720px; margin: 48px auto 0; }
+.faq-item {
+  border-bottom: 1px solid var(--border);
+  padding: 24px 0;
+}
+.faq-q {
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.faq-q::after { content: '+'; font-size: 1.5rem; color: var(--text-muted); transition: transform 0.2s; }
+.faq-item.open .faq-q::after { transform: rotate(45deg); }
+.faq-a {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+.faq-item.open .faq-a { max-height: 200px; padding-top: 12px; }
+
+/* ── Final CTA ── */
+.final-cta { text-align: center; }
+.final-cta h2 { font-size: clamp(2rem, 4vw, 3rem); max-width: 700px; margin: 0 auto 16px; }
+.final-cta .subtitle { color: var(--text-muted); max-width: 560px; margin: 0 auto 40px; }
+.final-cta .email-form { margin: 0 auto; }
+
+/* ── Footer ── */
+footer {
+  padding: 48px 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  section { padding: 80px 0; }
+  .hero { padding: 120px 0 80px; }
+  .steps { grid-template-columns: 1fr; gap: 32px; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .email-form { flex-direction: column; }
+  .email-form input, .email-form button { width: 100%; }
+  .pain-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="container">
+    <span class="pill animate-on-scroll">AI-GENERATED CODE REVIEWER</span>
+    <h1 class="animate-on-scroll" style="margin-top:20px">AI writes your code.<br>Who reviews it?</h1>
+    <p class="subtitle animate-on-scroll">Catch the bugs, security holes, and "phantom author" patterns that AI coding tools leave behind — before they hit production.</p>
+    <form class="email-form animate-on-scroll" onsubmit="return submitEmail(event)">
+      <input type="email" name="email" placeholder="Enter your email" required>
+      <button type="submit" class="btn-primary" onclick="dataLayer.push({event:'cta_click'})">Get Early Access</button>
+    </form>
+    <p class="form-message" style="display:none"></p>
+  </div>
+</section>
+
+<!-- ═══ CODE DIFF VISUAL (dark inset — signature pattern) ═══ -->
+<section class="dark-inset" style="padding:60px 0">
+  <div class="container">
+    <div class="code-block animate-on-scroll">
+<span class="line-comment">// PR #847 — AI-generated auth middleware</span>
+<span class="line-comment">// Looks clean. Passes tests. But...</span>
+
+<span class="line-num">12</span>  <span class="line-add">+ const token = req.headers.authorization?.split(' ')[1];</span>
+<span class="line-num">13</span>  <span class="line-add">+ const decoded = jwt.verify(token, process.env.SECRET);</span>
+<span class="line-del"><span class="line-num">14</span>  − // ⚠ No token expiry check — phantom author pattern</span>
+<span class="line-del"><span class="line-num">15</span>  − // ⚠ SECRET from env without fallback — crashes silently</span>
+<span class="line-del"><span class="line-num">16</span>  − // ⚠ No error handling — unverified tokens pass through</span>
+<span class="line-num">17</span>  <span class="line-add">+ req.user = decoded;</span>
+<span class="line-num">18</span>  <span class="line-add">+ next();</span>
+
+<span class="line-warn">→ 3 critical issues found in 7 lines. Review time: 12 seconds.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PAIN POINTS ═══ -->
+<section>
+  <div class="container">
+    <div style="text-align:center">
+      <span class="pill animate-on-scroll">THE PROBLEM</span>
+      <h2 class="animate-on-scroll" style="font-size:clamp(1.75rem,3.5vw,2.75rem);margin-top:16px;max-width:700px;margin-left:auto;margin-right:auto">Your team ships more code than ever. Your reviews can't keep up.</h2>
+    </div>
+    <div class="pain-grid">
+      <div class="card pain-card animate-on-scroll">
+        <div class="pain-number">01</div>
+        <h3>The Phantom Author</h3>
+        <p>AI coding tools produce code that compiles, passes tests, and looks professional. But nobody on your team wrote it — and nobody fully understands it.</p>
+        <blockquote>"My peer's solution looked good on paper — Java 21, CompletableFuture for concurrency. But when I dug in, none of it was actually understood."</blockquote>
+        <span class="source">r/programming · 892 upvotes</span>
+      </div>
+      <div class="card pain-card animate-on-scroll">
+        <div class="pain-number">02</div>
+        <h3>Senior Devs Are Drowning</h3>
+        <p>Your best engineers are now full-time reviewers. The tool that was supposed to save time created a new category of work.</p>
+        <blockquote>"Senior engineers spending 4-6 hours per week reviewing AI-generated code — 25-40% more time than human-written code."</blockquote>
+        <span class="source">Twitter/X trend · 2026</span>
+      </div>
+      <div class="card pain-card animate-on-scroll">
+        <div class="pain-number">03</div>
+        <h3>Existing Tools Add Noise</h3>
+        <p>Current AI review tools flag formatting and style. They miss the real problem: code that works but doesn't belong in your codebase.</p>
+        <blockquote>"Their site says it 'reviews like a senior engineer,' which honestly got my hopes up. We still have to do full human reviews anyway."</blockquote>
+        <span class="source">r/devops · CodeRabbit user</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section class="alt">
+  <div class="container">
+    <div style="text-align:center">
+      <span class="pill animate-on-scroll">HOW IT WORKS</span>
+      <h2 class="animate-on-scroll" style="font-size:clamp(1.75rem,3.5vw,2.75rem);margin-top:16px;max-width:700px;margin-left:auto;margin-right:auto">A reviewer that reads your codebase first — then reads the PR.</h2>
+    </div>
+    <div class="steps">
+      <div class="step animate-on-scroll">
+        <div class="step-num">1</div>
+        <h3>Connect your repo</h3>
+        <p>One-click GitHub/GitLab integration. The agent indexes your codebase — architecture, patterns, conventions, past decisions.</p>
+      </div>
+      <div class="step animate-on-scroll">
+        <div class="step-num">2</div>
+        <h3>Automatic PR review</h3>
+        <p>Every PR gets a contextual review within minutes. Not generic lint — feedback that understands your project.</p>
+      </div>
+      <div class="step animate-on-scroll">
+        <div class="step-num">3</div>
+        <h3>Humans review what matters</h3>
+        <p>Your seniors get a pre-filtered queue. Obvious issues are already caught. They focus on architecture and design.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CODE DIFF #2 (dark inset — recurring pattern) ═══ -->
+<section class="dark-inset" style="padding:60px 0">
+  <div class="container">
+    <div class="code-block animate-on-scroll">
+<span class="line-comment">// Review summary — PR #847</span>
+
+<span class="line-warn">⚑ 3 critical · 1 warning · 0 style nits</span>
+
+<span class="line-num"> 1</span>  <span class="line-del">✗ Missing token expiry validation (OWASP A07:2021)</span>
+<span class="line-num"> 2</span>  <span class="line-del">✗ No error boundary — silent auth bypass on invalid SECRET</span>
+<span class="line-num"> 3</span>  <span class="line-del">✗ Phantom author: pattern matches Copilot JWT template, not your auth conventions</span>
+<span class="line-num"> 4</span>  <span class="line-warn">⚠ Consider using your existing AuthMiddleware base class (src/middleware/auth.ts)</span>
+
+<span class="line-comment">// Suggested fix attached · Confidence: 94% · Review time: 12s</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SOCIAL PROOF / STATS ═══ -->
+<section>
+  <div class="container">
+    <div style="text-align:center">
+      <span class="pill animate-on-scroll">THE NUMBERS</span>
+      <h2 class="animate-on-scroll" style="font-size:clamp(1.75rem,3.5vw,2.75rem);margin-top:16px">The numbers behind the problem</h2>
+    </div>
+    <div class="stats-grid">
+      <div class="animate-on-scroll">
+        <div class="stat-value" data-target="45">0</div>
+        <div class="stat-label">% of AI-generated code contains OWASP Top 10 vulnerabilities</div>
+      </div>
+      <div class="animate-on-scroll">
+        <div class="stat-value" data-target="6" data-prefix="" data-suffix="hrs/wk">0</div>
+        <div class="stat-label">Senior engineers spend reviewing AI-generated code</div>
+      </div>
+      <div class="animate-on-scroll">
+        <div class="stat-value" data-target="40" data-suffix="%">0</div>
+        <div class="stat-label">More review time needed for AI code vs human-written</div>
+      </div>
+      <div class="animate-on-scroll">
+        <div class="stat-value" data-target="4250" data-suffix="">0</div>
+        <div class="stat-label">Upvotes on "The era of AI slop cleanup has begun"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COMPARISON ═══ -->
+<section class="alt">
+  <div class="container">
+    <div style="text-align:center">
+      <span class="pill animate-on-scroll">COMPARISON</span>
+      <h2 class="animate-on-scroll" style="font-size:clamp(1.75rem,3.5vw,2.75rem);margin-top:16px">Not another linter. Not another dashboard.</h2>
+    </div>
+    <div class="comparison-wrapper animate-on-scroll">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th style="text-align:left">Capability</th>
+            <th>Linters</th>
+            <th>Static Analysis</th>
+            <th>Generic AI Review</th>
+            <th>This product</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Syntax errors</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Style violations</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Security patterns</td><td>—</td><td>✓</td><td>Partial</td><td>✓</td></tr>
+          <tr><td>Codebase context</td><td>—</td><td>—</td><td>—</td><td style="color:var(--accent);font-weight:600">✓</td></tr>
+          <tr><td>Phantom author detection</td><td>—</td><td>—</td><td>—</td><td style="color:var(--accent);font-weight:600">✓</td></tr>
+          <tr><td>Comprehension gap flagging</td><td>—</td><td>—</td><td>—</td><td style="color:var(--accent);font-weight:600">✓</td></tr>
+          <tr><td>Reduces human review time</td><td>—</td><td>—</td><td>— (adds noise)</td><td style="color:var(--accent);font-weight:600">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PRICING ═══ -->
+<section>
+  <div class="container">
+    <div style="text-align:center">
+      <span class="pill animate-on-scroll">PRICING</span>
+      <h2 class="animate-on-scroll" style="font-size:clamp(1.75rem,3.5vw,2.75rem);margin-top:16px">Start free. Scale when ready.</h2>
+    </div>
+    <div class="pricing-grid">
+      <div class="card pricing-card animate-on-scroll">
+        <div class="pricing-name">Free</div>
+        <div class="pricing-desc">For solo devs getting started</div>
+        <ul class="pricing-features">
+          <li>1 repository</li>
+          <li>50 PR reviews / month</li>
+          <li>Core issue detection</li>
+          <li>GitHub integration</li>
+        </ul>
+      </div>
+      <div class="card pricing-card featured animate-on-scroll">
+        <div class="pricing-name">Team</div>
+        <div class="pricing-desc">For growing teams shipping fast</div>
+        <ul class="pricing-features">
+          <li>Up to 10 repositories</li>
+          <li>Unlimited PR reviews</li>
+          <li>Team dashboard</li>
+          <li>Custom conventions config</li>
+          <li>Priority support</li>
+        </ul>
+      </div>
+      <div class="card pricing-card animate-on-scroll">
+        <div class="pricing-name">Enterprise</div>
+        <div class="pricing-desc">Custom deployment & compliance</div>
+        <ul class="pricing-features">
+          <li>Unlimited repositories</li>
+          <li>SSO & on-prem option</li>
+          <li>Compliance reporting</li>
+          <li>Dedicated support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FAQ ═══ -->
+<section class="alt">
+  <div class="container">
+    <div style="text-align:center">
+      <span class="pill animate-on-scroll">FAQ</span>
+      <h2 class="animate-on-scroll" style="font-size:clamp(1.75rem,3.5vw,2.75rem);margin-top:16px">Questions & answers</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item animate-on-scroll">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How is this different from CodeRabbit? <span></span></div>
+        <div class="faq-a">CodeRabbit reviews PRs without understanding your codebase. We index your repo first — architecture, patterns, past decisions — so every review is contextual. No generic "consider renaming this variable" noise.</div>
+      </div>
+      <div class="faq-item animate-on-scroll">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Does it work with AI-generated code specifically? <span></span></div>
+        <div class="faq-a">Yes. We detect patterns unique to AI-generated code — confident-looking but misunderstood implementations, hallucinated design patterns, copy-paste logic that doesn't fit your architecture.</div>
+      </div>
+      <div class="faq-item animate-on-scroll">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Will it slow down our CI pipeline? <span></span></div>
+        <div class="faq-a">Reviews run in parallel with your CI. Average review time: under 3 minutes for a typical PR.</div>
+      </div>
+      <div class="faq-item animate-on-scroll">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What languages do you support? <span></span></div>
+        <div class="faq-a">JavaScript/TypeScript, Python, Java, Go, Rust at launch. More coming based on demand.</div>
+      </div>
+      <div class="faq-item animate-on-scroll">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Can I customize what it flags? <span></span></div>
+        <div class="faq-a">Yes. Configure severity levels, ignore patterns, and teach it your team's conventions through a simple config file.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FINAL CTA ═══ -->
+<section class="final-cta">
+  <div class="container">
+    <span class="pill animate-on-scroll">GET STARTED</span>
+    <h2 class="animate-on-scroll" style="margin-top:16px">The era of AI slop cleanup has begun. Get ahead of it.</h2>
+    <p class="subtitle animate-on-scroll">Your team is already shipping AI-generated code. Make sure someone's actually reviewing it.</p>
+    <form class="email-form animate-on-scroll" onsubmit="return submitEmail(event)">
+      <input type="email" name="email" placeholder="Enter your email" required>
+      <button type="submit" class="btn-primary" onclick="dataLayer.push({event:'cta_click'})">Get Early Access</button>
+    </form>
+    <p class="form-message" style="display:none"></p>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="container">
+    <p>© 2026 AI Code Review Agent. Built for developers who care about code quality.</p>
+  </div>
+</footer>
+
+<!-- ═══ JAVASCRIPT ═══ -->
+<script>
+const API_BASE = 'https://minilab-api.olares.com';
+const IDEA_ID = 'e3fe6abb-19f3-405f-9e1b-f7faee617e6b';
+const LP_ID = 'b61477a1-b539-4824-ae69-784ae8b49c79';
+
+function getUTM() {
+  const p = new URLSearchParams(window.location.search);
+  return {
+    utm_source: p.get('utm_source') || '',
+    utm_medium: p.get('utm_medium') || '',
+    utm_campaign: p.get('utm_campaign') || ''
+  };
+}
+
+async function submitEmail(e) {
+  e.preventDefault();
+  const form = e.target;
+  const email = form.email.value;
+  const msg = form.querySelector('.form-message') || form.nextElementSibling;
+  const btn = form.querySelector('button');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+  try {
+    const res = await fetch(API_BASE + '/api/leads', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email, idea_id: IDEA_ID, landing_page_id: LP_ID || undefined, ...getUTM() })
+    });
+    if (res.ok) {
+      dataLayer.push({event: 'email_submit'});
+      msg.textContent = '✓ You\'re on the list!';
+      msg.style.display = 'block';
+      msg.style.color = 'var(--accent)';
+      form.email.value = '';
+    } else { throw new Error('Failed'); }
+  } catch {
+    msg.textContent = 'Something went wrong. Please try again.';
+    msg.style.display = 'block';
+    msg.style.color = '#F38BA8';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Get Early Access';
+  }
+}
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+// Countup
+function countUp(el, target, suffix, duration) {
+  duration = duration || 1500;
+  suffix = suffix || '';
+  const start = performance.now();
+  const update = (time) => {
+    const progress = Math.min((time - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(ease * target).toLocaleString() + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      const suffix = el.dataset.suffix || '';
+      countUp(el, target, suffix);
+      statObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stat-value[data-target]').forEach(el => statObserver.observe(el));
+
+// scroll_50
+(function() {
+  var fired = false;
+  window.addEventListener('scroll', function() {
+    if (fired) return;
+    var pct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
+    if (pct >= 0.5) { fired = true; dataLayer.push({event: 'scroll_50'}); }
+  });
+})();
+</script>
+</body>
+</html>
