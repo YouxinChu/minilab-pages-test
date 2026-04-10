@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="idea-slug" content="ai-code-review">
+<title>AI Code Review Agent — Who Reviews Your AI-Generated Code?</title>
+<meta name="description" content="Catch bugs, security holes, and phantom author patterns in AI-generated code before they hit production. Cut senior dev review time by 60%.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- GTM placeholder -->
+<script>window.dataLayer = window.dataLayer || [];</script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        bg: '#0a0a0f',
+        surface: '#12121a',
+        surfaceHover: '#1a1a26',
+        accent: '#00e5a0',
+        accentDim: '#00c488',
+        textPrimary: '#e8e8ed',
+        textMuted: '#8888a0',
+        danger: '#ff4d6a',
+        warn: '#ffb84d',
+      },
+      fontFamily: {
+        display: ['"Space Grotesk"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      }
+    }
+  }
+}
+</script>
+<style>
+body { background: #0a0a0f; color: #e8e8ed; font-family: 'Space Grotesk', sans-serif; }
+.animate-on-scroll { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+.glow-line { height: 1px; background: linear-gradient(90deg, transparent, #00e5a0, transparent); }
+.terminal-cursor { display: inline-block; width: 10px; height: 20px; background: #00e5a0; animation: blink 1s step-end infinite; margin-left: 4px; vertical-align: middle; }
+@keyframes blink { 50% { opacity: 0; } }
+.code-block { background: #12121a; border: 1px solid #1a1a26; border-radius: 8px; font-family: 'JetBrains Mono', monospace; }
+.stat-card { background: linear-gradient(135deg, #12121a 0%, #1a1a26 100%); border: 1px solid rgba(0,229,160,0.15); }
+.stat-card:hover { border-color: rgba(0,229,160,0.4); transform: translateY(-2px); transition: all 0.3s ease; }
+.cta-btn { background: #00e5a0; color: #0a0a0f; font-weight: 700; transition: all 0.2s ease; }
+.cta-btn:hover { background: #00c488; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,229,160,0.3); }
+.cta-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+input[type="email"] { background: #12121a; border: 1px solid #2a2a3a; color: #e8e8ed; }
+input[type="email"]:focus { border-color: #00e5a0; outline: none; box-shadow: 0 0 0 2px rgba(0,229,160,0.15); }
+.faq-item summary { cursor: pointer; list-style: none; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::before { content: '+'; margin-right: 12px; color: #00e5a0; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.faq-item[open] summary::before { content: '−'; }
+</style>
+</head>
+<body class="antialiased">
+
+<!-- ===== HERO ===== -->
+<section class="min-h-screen flex items-center relative overflow-hidden">
+  <div class="absolute inset-0 opacity-20" style="background: radial-gradient(ellipse at 30% 20%, rgba(0,229,160,0.12) 0%, transparent 60%);"></div>
+  <div class="max-w-5xl mx-auto px-6 py-24 relative z-10">
+    <p class="font-mono text-accent text-sm tracking-widest uppercase mb-6">// code review for the AI era</p>
+    <h1 class="font-display text-5xl md:text-7xl font-bold leading-[1.05] mb-6">
+      AI writes your code.<br>
+      <span class="text-textMuted">Who reviews it?</span><span class="terminal-cursor"></span>
+    </h1>
+    <p class="text-xl text-textMuted max-w-2xl mb-4">
+      Catch the bugs, security holes, and "phantom author" patterns that AI coding tools leave behind — before they hit production.
+    </p>
+    <p class="text-textMuted mb-8 font-mono text-sm">
+      <span class="text-danger">45%</span> of AI-generated code contains OWASP Top 10 vulnerabilities.
+      Your team is shipping it every day.
+    </p>
+    <form class="email-capture-form flex flex-col sm:flex-row gap-3 max-w-lg mb-4" onsubmit="return submitEmail(event)">
+      <input type="email" name="email" placeholder="you@company.com" required
+        class="flex-1 px-4 py-3 rounded-lg text-sm font-mono" />
+      <button type="submit" onclick="dataLayer.push({event: 'cta_click'})"
+        class="cta-btn px-6 py-3 rounded-lg text-sm font-mono whitespace-nowrap">
+        Get Early Access
+      </button>
+    </form>
+    <p class="form-message text-sm text-accent" style="display:none"></p>
+    <p class="text-textMuted text-xs font-mono mt-2">Free to start · No credit card required</p>
+  </div>
+</section>
+
+<div class="glow-line max-w-4xl mx-auto"></div>
+
+<!-- ===== PAIN POINTS ===== -->
+<section class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+    <p class="font-mono text-accent text-sm tracking-widest uppercase mb-4 animate-on-scroll">// the problem</p>
+    <h2 class="font-display text-3xl md:text-4xl font-bold mb-16 animate-on-scroll">
+      Your team ships more code than ever.<br>
+      <span class="text-textMuted">Your reviews can't keep up.</span>
+    </h2>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="animate-on-scroll">
+        <div class="code-block p-6 h-full">
+          <p class="font-mono text-danger text-xs mb-3">ERROR: PHANTOM_AUTHOR</p>
+          <h3 class="font-display text-lg font-semibold mb-3">Nobody Wrote This Code</h3>
+          <p class="text-textMuted text-sm leading-relaxed mb-4">AI tools produce code that compiles, passes tests, and looks professional. But nobody on your team actually understands it.</p>
+          <blockquote class="border-l-2 border-accent pl-3 text-xs text-textMuted italic">
+            "My peer's solution looked good on paper — Java 21, CompletableFuture. But when I dug in, none of it was actually understood."
+            <span class="block mt-1 text-accent not-italic">— r/programming · 892↑</span>
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="animate-on-scroll">
+        <div class="code-block p-6 h-full">
+          <p class="font-mono text-warn text-xs mb-3">WARN: REVIEW_OVERLOAD</p>
+          <h3 class="font-display text-lg font-semibold mb-3">Seniors Are Drowning</h3>
+          <p class="text-textMuted text-sm leading-relaxed mb-4">Your best engineers are now full-time reviewers. The tool that saved writing time created a new category of review work.</p>
+          <blockquote class="border-l-2 border-accent pl-3 text-xs text-textMuted italic">
+            "Senior engineers spending 4-6 hours per week reviewing AI-generated code — 25-40% more than human-written code."
+            <span class="block mt-1 text-accent not-italic">— Twitter/X trend · 2026</span>
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="animate-on-scroll">
+        <div class="code-block p-6 h-full">
+          <p class="font-mono text-warn text-xs mb-3">WARN: NOISE_RATIO_HIGH</p>
+          <h3 class="font-display text-lg font-semibold mb-3">Existing Tools Add Noise</h3>
+          <p class="text-textMuted text-sm leading-relaxed mb-4">Current AI review tools flag formatting and style. They miss the real problem: code that works but doesn't belong in your codebase.</p>
+          <blockquote class="border-l-2 border-accent pl-3 text-xs text-textMuted italic">
+            "Their site says it 'reviews like a senior engineer.' We still have to do full human reviews anyway."
+            <span class="block mt-1 text-accent not-italic">— r/devops · CodeRabbit user</span>
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line max-w-4xl mx-auto"></div>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+    <p class="font-mono text-accent text-sm tracking-widest uppercase mb-4 animate-on-scroll">// how it works</p>
+    <h2 class="font-display text-3xl md:text-4xl font-bold mb-16 animate-on-scroll">
+      A reviewer that reads your codebase first.<br>
+      <span class="text-textMuted">Then reads the PR.</span>
+    </h2>
+
+    <div class="grid md:grid-cols-3 gap-12">
+      <div class="animate-on-scroll">
+        <div class="font-mono text-accent text-4xl font-bold mb-4">01</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Connect your repo</h3>
+        <p class="text-textMuted text-sm leading-relaxed">One-click GitHub/GitLab integration. The agent indexes your codebase — architecture, patterns, conventions, past decisions.</p>
+      </div>
+      <div class="animate-on-scroll">
+        <div class="font-mono text-accent text-4xl font-bold mb-4">02</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Automatic PR review</h3>
+        <p class="text-textMuted text-sm leading-relaxed">Every PR gets a contextual review in minutes. Flags comprehension gaps, phantom author patterns, security risks, and code that doesn't fit.</p>
+      </div>
+      <div class="animate-on-scroll">
+        <div class="font-mono text-accent text-4xl font-bold mb-4">03</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Humans review what matters</h3>
+        <p class="text-textMuted text-sm leading-relaxed">Your seniors get a pre-filtered queue. Obvious issues already caught. They focus on architecture and design — not AI-generated boilerplate.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line max-w-4xl mx-auto"></div>
+
+<!-- ===== KEY FEATURES ===== -->
+<section class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+    <p class="font-mono text-accent text-sm tracking-widest uppercase mb-4 animate-on-scroll">// features</p>
+    <h2 class="font-display text-3xl md:text-4xl font-bold mb-16 animate-on-scroll">
+      Not another linter.<br>
+      <span class="text-textMuted">Not another dashboard.</span>
+    </h2>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="stat-card rounded-xl p-6 animate-on-scroll">
+        <p class="font-mono text-accent text-xs mb-2">CODEBASE_CONTEXT</p>
+        <h3 class="font-display text-lg font-semibold mb-2">Deep Codebase Understanding</h3>
+        <p class="text-textMuted text-sm">Indexes your entire repo. Reviews against your architecture, not generic rules. Knows why you chose that pattern.</p>
+      </div>
+      <div class="stat-card rounded-xl p-6 animate-on-scroll">
+        <p class="font-mono text-accent text-xs mb-2">PHANTOM_DETECT</p>
+        <h3 class="font-display text-lg font-semibold mb-2">Phantom Author Detection</h3>
+        <p class="text-textMuted text-sm">Identifies code that compiles but wasn't understood by the committer. Catches AI-generated patterns that don't fit your codebase.</p>
+      </div>
+      <div class="stat-card rounded-xl p-6 animate-on-scroll">
+        <p class="font-mono text-accent text-xs mb-2">SECURITY_SCAN</p>
+        <h3 class="font-display text-lg font-semibold mb-2">AI-Specific Security Scanning</h3>
+        <p class="text-textMuted text-sm">Targets the OWASP Top 10 vulnerabilities that AI coding tools introduce most frequently. Not generic static analysis.</p>
+      </div>
+      <div class="stat-card rounded-xl p-6 animate-on-scroll">
+        <p class="font-mono text-accent text-xs mb-2">REVIEW_FILTER</p>
+        <h3 class="font-display text-lg font-semibold mb-2">Smart Review Queue</h3>
+        <p class="text-textMuted text-sm">Pre-filters PRs so your seniors only see what needs human judgment. Cut review time by 60%. Stop the review → reject → re-review cycle.</p>
+      </div>
+      <div class="stat-card rounded-xl p-6 animate-on-scroll">
+        <p class="font-mono text-accent text-xs mb-2">LEARN_ADAPT</p>
+        <h3 class="font-display text-lg font-semibold mb-2">Learns Your Standards</h3>
+        <p class="text-textMuted text-sm">Remembers your decisions, style, and past issues. Reviews get smarter over time. Configurable severity and ignore patterns.</p>
+      </div>
+      <div class="stat-card rounded-xl p-6 animate-on-scroll">
+        <p class="font-mono text-accent text-xs mb-2">INTEGRATIONS</p>
+        <h3 class="font-display text-lg font-semibold mb-2">GitHub & GitLab Native</h3>
+        <p class="text-textMuted text-sm">Inline PR comments. Runs parallel to CI — average review under 3 minutes. JS/TS, Python, Java, Go, Rust at launch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line max-w-4xl mx-auto"></div>
+
+<!-- ===== SOCIAL PROOF ===== -->
+<section class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+    <p class="font-mono text-accent text-sm tracking-widest uppercase mb-4 animate-on-scroll">// the numbers</p>
+    <h2 class="font-display text-3xl md:text-4xl font-bold mb-16 animate-on-scroll">
+      The problem is real.<br>
+      <span class="text-textMuted">The data proves it.</span>
+    </h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div class="stat-card rounded-xl p-6 text-center animate-on-scroll">
+        <p class="font-mono text-accent text-3xl font-bold countup" data-target="45">0</p>
+        <p class="font-mono text-accent text-xl">%</p>
+        <p class="text-textMuted text-xs mt-2">of AI code has OWASP Top 10 vulnerabilities</p>
+      </div>
+      <div class="stat-card rounded-xl p-6 text-center animate-on-scroll">
+        <p class="font-mono text-accent text-3xl font-bold countup" data-target="6">0</p>
+        <p class="font-mono text-accent text-xl">hrs/wk</p>
+        <p class="text-textMuted text-xs mt-2">senior devs spend reviewing AI-generated code</p>
+      </div>
+      <div class="stat-card rounded-xl p-6 text-center animate-on-scroll">
+        <p class="font-mono text-accent text-3xl font-bold countup" data-target="40">0</p>
+        <p class="font-mono text-accent text-xl">%</p>
+        <p class="text-textMuted text-xs mt-2">more review time for AI code vs human code</p>
+      </div>
+      <div class="stat-card rounded-xl p-6 text-center animate-on-scroll">
+        <p class="font-mono text-accent text-3xl font-bold countup" data-target="4250">0</p>
+        <p class="font-mono text-accent text-xl">↑</p>
+        <p class="text-textMuted text-xs mt-2">"The era of AI slop cleanup has begun" — Reddit</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line max-w-4xl mx-auto"></div>
+
+<!-- ===== PRICING ===== -->
+<section class="py-24 px-6">
+  <div class="max-w-4xl mx-auto text-center">
+    <p class="font-mono text-accent text-sm tracking-widest uppercase mb-4 animate-on-scroll">// pricing</p>
+    <h2 class="font-display text-3xl md:text-4xl font-bold mb-4 animate-on-scroll">Start free. Scale when ready.</h2>
+    <p class="text-textMuted mb-16 animate-on-scroll">No credit card required. Cancel anytime.</p>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="code-block p-8 text-left animate-on-scroll">
+        <p class="font-mono text-accent text-xs mb-2">FREE</p>
+        <p class="font-display text-3xl font-bold mb-1">$0</p>
+        <p class="text-textMuted text-sm mb-6">Solo developers</p>
+        <ul class="text-sm text-textMuted space-y-2">
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> 1 repo</li>
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> 50 PRs/month</li>
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> Core review features</li>
+        </ul>
+      </div>
+      <div class="code-block p-8 text-left border-accent animate-on-scroll" style="border-color: rgba(0,229,160,0.4);">
+        <p class="font-mono text-accent text-xs mb-2">TEAM</p>
+        <p class="font-display text-3xl font-bold mb-1">Coming soon</p>
+        <p class="text-textMuted text-sm mb-6">Small teams (2-20)</p>
+        <ul class="text-sm text-textMuted space-y-2">
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> Up to 10 repos</li>
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> Unlimited PRs</li>
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> Team dashboard</li>
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> Priority support</li>
+        </ul>
+      </div>
+      <div class="code-block p-8 text-left animate-on-scroll">
+        <p class="font-mono text-accent text-xs mb-2">ENTERPRISE</p>
+        <p class="font-display text-3xl font-bold mb-1">Custom</p>
+        <p class="text-textMuted text-sm mb-6">Large organizations</p>
+        <ul class="text-sm text-textMuted space-y-2">
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> Unlimited repos</li>
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> SSO & on-prem</li>
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> Compliance features</li>
+          <li class="flex items-start gap-2"><span class="text-accent">→</span> Dedicated support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line max-w-4xl mx-auto"></div>
+
+<!-- ===== FAQ ===== -->
+<section class="py-24 px-6">
+  <div class="max-w-3xl mx-auto">
+    <p class="font-mono text-accent text-sm tracking-widest uppercase mb-4 animate-on-scroll">// faq</p>
+    <h2 class="font-display text-3xl font-bold mb-12 animate-on-scroll">Frequently asked questions</h2>
+
+    <div class="space-y-4">
+      <details class="faq-item code-block p-5 animate-on-scroll">
+        <summary class="font-display font-semibold text-sm">How is this different from CodeRabbit?</summary>
+        <p class="text-textMuted text-sm mt-3 pl-6">CodeRabbit reviews PRs without understanding your codebase. We index your repo first — architecture, patterns, past decisions — so every review is contextual. No generic "consider renaming this variable" noise.</p>
+      </details>
+      <details class="faq-item code-block p-5 animate-on-scroll">
+        <summary class="font-display font-semibold text-sm">Does it work with AI-generated code specifically?</summary>
+        <p class="text-textMuted text-sm mt-3 pl-6">Yes. We detect patterns unique to AI-generated code — confident-looking but misunderstood implementations, hallucinated design patterns, copy-paste logic that doesn't fit your architecture.</p>
+      </details>
+      <details class="faq-item code-block p-5 animate-on-scroll">
+        <summary class="font-display font-semibold text-sm">Will it slow down our CI pipeline?</summary>
+        <p class="text-textMuted text-sm mt-3 pl-6">Reviews run in parallel with your CI. Average review time: under 3 minutes for a typical PR.</p>
+      </details>
+      <details class="faq-item code-block p-5 animate-on-scroll">
+        <summary class="font-display font-semibold text-sm">What languages do you support?</summary>
+        <p class="text-textMuted text-sm mt-3 pl-6">JavaScript/TypeScript, Python, Java, Go, Rust at launch. More coming based on demand.</p>
+      </details>
+      <details class="faq-item code-block p-5 animate-on-scroll">
+        <summary class="font-display font-semibold text-sm">Can I customize what it flags?</summary>
+        <p class="text-textMuted text-sm mt-3 pl-6">Yes. Configure severity levels, ignore patterns, and teach it your team's conventions through a simple config file.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line max-w-4xl mx-auto"></div>
+
+<!-- ===== FINAL CTA ===== -->
+<section class="py-24 px-6">
+  <div class="max-w-3xl mx-auto text-center">
+    <p class="font-mono text-accent text-sm tracking-widest uppercase mb-6 animate-on-scroll">// get started</p>
+    <h2 class="font-display text-3xl md:text-5xl font-bold mb-4 animate-on-scroll">
+      The era of AI slop cleanup<br>has begun.
+    </h2>
+    <p class="text-textMuted text-lg mb-8 animate-on-scroll">Your team is already shipping AI-generated code. Make sure someone's actually reviewing it.</p>
+    <form class="email-capture-form flex flex-col sm:flex-row gap-3 max-w-lg mx-auto mb-4 animate-on-scroll" onsubmit="return submitEmail(event)">
+      <input type="email" name="email" placeholder="you@company.com" required
+        class="flex-1 px-4 py-3 rounded-lg text-sm font-mono" />
+      <button type="submit" onclick="dataLayer.push({event: 'cta_click'})"
+        class="cta-btn px-6 py-3 rounded-lg text-sm font-mono whitespace-nowrap">
+        Get Early Access
+      </button>
+    </form>
+    <p class="form-message text-sm text-accent" style="display:none"></p>
+    <p class="text-textMuted text-xs font-mono mt-2">Free to start · No credit card required</p>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="py-12 px-6 border-t border-surfaceHover">
+  <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <p class="font-mono text-textMuted text-xs">© 2026 AI Code Review Agent</p>
+    <div class="flex gap-6">
+      <a href="#" class="text-textMuted text-xs hover:text-accent transition">Privacy</a>
+      <a href="#" class="text-textMuted text-xs hover:text-accent transition">Terms</a>
+      <a href="mailto:hello@example.com" class="text-textMuted text-xs hover:text-accent transition">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+const API_BASE = 'https://minilab-api.olares.com';
+const IDEA_ID = 'e3fe6abb-19f3-405f-9e1b-f7faee617e6b';
+const LP_ID = 'b61477a1-b539-4824-ae69-784ae8b49c79';
+
+function getUTM() {
+  const p = new URLSearchParams(window.location.search);
+  return {
+    utm_source: p.get('utm_source') || '',
+    utm_medium: p.get('utm_medium') || '',
+    utm_campaign: p.get('utm_campaign') || ''
+  };
+}
+
+async function submitEmail(e) {
+  e.preventDefault();
+  const form = e.target;
+  const email = form.email.value;
+  const msg = form.querySelector('.form-message') || form.nextElementSibling;
+  const btn = form.querySelector('button');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+  try {
+    const res = await fetch(API_BASE + '/api/leads', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email,
+        ideaId: IDEA_ID,
+        landingPageId: LP_ID || undefined,
+        ...getUTM()
+      })
+    });
+    if (res.ok) {
+      dataLayer.push({event: 'email_submit'});
+      msg.textContent = '✓ You\'re on the list!';
+      msg.style.display = 'block';
+      form.email.value = '';
+    } else { throw new Error('Failed'); }
+  } catch {
+    msg.textContent = 'Something went wrong. Please try again.';
+    msg.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Get Early Access';
+  }
+}
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+// Countup
+function countUp(el, target, duration = 1500) {
+  const start = performance.now();
+  const update = (time) => {
+    const progress = Math.min((time - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(ease * target).toLocaleString();
+    if (progress < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+const countObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      countUp(entry.target, parseInt(entry.target.dataset.target));
+      countObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.countup').forEach(el => countObserver.observe(el));
+
+// scroll_50
+(function() {
+  var fired = false;
+  window.addEventListener('scroll', function() {
+    if (fired) return;
+    var scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
+    if (scrollPercent >= 0.5) { fired = true; dataLayer.push({event: 'scroll_50'}); }
+  });
+})();
+</script>
+</body>
+</html>
