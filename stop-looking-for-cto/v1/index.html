@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="idea-slug" content="stop-looking-for-cto">
+  <title>Stop Looking for a CTO — Your AI Dev Team Is Ready</title>
+  <meta name="description" content="7 AI Agents cover the entire software development lifecycle. From idea to launch, no coding required. Starting at $49/mo.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- GTM placeholder -->
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0a0a0f',
+            surface: '#13131a',
+            'surface-hover': '#1a1a24',
+            accent: '#6366f1',
+            'accent-hover': '#818cf8',
+            'text-primary': '#f0f0f5',
+            'text-muted': '#8888a0',
+            'border-subtle': '#1e1e2e',
+          },
+          fontFamily: {
+            display: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0a0a0f; color: #f0f0f5; font-family: 'Inter', sans-serif; }
+    .animate-on-scroll { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+    .glow-accent { box-shadow: 0 0 40px rgba(99,102,241,0.15); }
+    .gradient-text { background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-gradient { background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%); }
+    .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(99,102,241,0.1); }
+    .form-message { margin-top: 8px; font-size: 14px; }
+    input[type="email"]:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+    .pricing-popular { border: 2px solid #6366f1; }
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .faq-item.open .faq-answer { max-height: 300px; }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-chevron { transition: transform 0.3s ease; }
+  </style>
+</head>
+<body class="antialiased">
+
+<!-- ========== HERO ========== -->
+<section class="hero-gradient relative min-h-screen flex items-center justify-center px-4 py-20">
+  <div class="max-w-4xl mx-auto text-center">
+    <p class="text-accent font-display font-medium tracking-wide uppercase text-sm mb-6 animate-on-scroll">Your AI Development Team</p>
+    <h1 class="font-display text-5xl md:text-7xl font-bold leading-tight mb-6 animate-on-scroll">
+      Stop Looking for a CTO.<br>
+      <span class="gradient-text">Your AI Dev Team Is Ready.</span>
+    </h1>
+    <p class="text-text-muted text-lg md:text-xl max-w-2xl mx-auto mb-10 animate-on-scroll">
+      7 AI Agents cover the entire software development lifecycle — from idea to launch. No coding required. Starting at $49/mo.
+    </p>
+    <form class="email-capture-form flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto mb-6 animate-on-scroll" onsubmit="return submitEmail(event)">
+      <input type="email" name="email" placeholder="Enter your email" required
+        class="flex-1 px-5 py-3.5 rounded-lg bg-surface border border-border-subtle text-text-primary placeholder-text-muted text-base" />
+      <button type="submit" onclick="dataLayer.push({event: 'cta_click'})"
+        class="px-7 py-3.5 bg-accent hover:bg-accent-hover text-white font-display font-semibold rounded-lg transition-colors whitespace-nowrap">
+        Get Notified + Reserve Yours
+      </button>
+    </form>
+    <p class="form-message text-accent" style="display:none"></p>
+    <p class="text-text-muted text-sm animate-on-scroll">"A non-technical founder tried to sell a 100% AI-generated MVP to a bank." — <span class="text-text-primary">Don't make the same mistake.</span></p>
+  </div>
+</section>
+
+<!-- ========== PAIN POINTS ========== -->
+<section class="py-24 px-4">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="font-display text-3xl md:text-4xl font-bold text-center mb-4 animate-on-scroll">Everything You've Tried <span class="gradient-text">Falls Short</span></h2>
+    <p class="text-text-muted text-center mb-16 max-w-2xl mx-auto animate-on-scroll">You have the vision. But turning it into software? That's where it breaks down.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-surface rounded-xl p-8 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-3xl mb-4">🤝</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Finding a Technical Co-founder?</h3>
+        <p class="text-text-muted">3 months in and nobody wants to work for free on an unproven idea. You're stuck pitching to developers who have better options.</p>
+      </div>
+      <div class="bg-surface rounded-xl p-8 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-3xl mb-4">💸</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Outsourcing?</h3>
+        <p class="text-text-muted">Spent $15K, got code you can't read. Every change request costs extra. You're hostage to someone else's timeline.</p>
+      </div>
+      <div class="bg-surface rounded-xl p-8 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-3xl mb-4">🧩</div>
+        <h3 class="font-display text-xl font-semibold mb-3">No-Code Tools?</h3>
+        <p class="text-text-muted">Bubble can't handle complex business logic. The moment you need something custom, you hit a wall. And you still can't scale.</p>
+      </div>
+      <div class="bg-surface rounded-xl p-8 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-3xl mb-4">🤖</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Vibe Coding with ChatGPT?</h3>
+        <p class="text-text-muted">"Vibe-Coding AI panics and deletes production database." No architecture, no tests, no deployment strategy. Fast but dangerous.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SOLUTION ========== -->
+<section class="py-24 px-4 bg-surface">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="font-display text-3xl md:text-4xl font-bold text-center mb-4 animate-on-scroll">Not a Tool. <span class="gradient-text">A Team.</span></h2>
+    <p class="text-text-muted text-center mb-16 max-w-2xl mx-auto animate-on-scroll">7 specialized AI agents working together — covering every stage of software development.</p>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="text-center animate-on-scroll">
+        <div class="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <span class="text-3xl">🧠</span>
+        </div>
+        <h3 class="font-display text-xl font-semibold mb-3">AI Product Manager</h3>
+        <p class="text-text-muted">Describe your idea in plain language. It breaks it down into requirements, user stories, and a product spec.</p>
+      </div>
+      <div class="text-center animate-on-scroll">
+        <div class="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <span class="text-3xl">💻</span>
+        </div>
+        <h3 class="font-display text-xl font-semibold mb-3">AI Developer + Architect</h3>
+        <p class="text-text-muted">Production-grade code with proper architecture. Not toy demos — real software with code review and testing built in.</p>
+      </div>
+      <div class="text-center animate-on-scroll">
+        <div class="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <span class="text-3xl">🚀</span>
+        </div>
+        <h3 class="font-display text-xl font-semibold mb-3">AI DevOps</h3>
+        <p class="text-text-muted">Testing, deployment, monitoring — all automated. One click to go live. You focus on the business.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== HOW IT WORKS ========== -->
+<section class="py-24 px-4">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="font-display text-3xl md:text-4xl font-bold text-center mb-16 animate-on-scroll">From Idea to Launch in <span class="gradient-text">3 Steps</span></h2>
+    <div class="space-y-12">
+      <div class="flex items-start gap-6 animate-on-scroll">
+        <div class="flex-shrink-0 w-12 h-12 bg-accent rounded-xl flex items-center justify-center font-display font-bold text-xl">1</div>
+        <div>
+          <h3 class="font-display text-xl font-semibold mb-2">Describe Your Product Idea</h3>
+          <p class="text-text-muted">Tell the AI Product Manager what you want to build. It generates a full requirements document and prototype spec.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-6 animate-on-scroll">
+        <div class="flex-shrink-0 w-12 h-12 bg-accent rounded-xl flex items-center justify-center font-display font-bold text-xl">2</div>
+        <div>
+          <h3 class="font-display text-xl font-semibold mb-2">Confirm & Let the Team Build</h3>
+          <p class="text-text-muted">Review the spec, approve it, and the AI team handles development, testing, architecture review, and code quality — automatically.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-6 animate-on-scroll">
+        <div class="flex-shrink-0 w-12 h-12 bg-accent rounded-xl flex items-center justify-center font-display font-bold text-xl">3</div>
+        <div>
+          <h3 class="font-display text-xl font-semibold mb-2">One-Click Deploy</h3>
+          <p class="text-text-muted">Your product goes live. AI DevOps handles deployment, monitoring, and alerts. You wake up to a running product.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== KEY FEATURES ========== -->
+<section class="py-24 px-4 bg-surface">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="font-display text-3xl md:text-4xl font-bold text-center mb-16 animate-on-scroll">The Full Stack, <span class="gradient-text">Covered</span></h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-bg rounded-xl p-6 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-2xl mb-3">📋</div>
+        <h3 class="font-display font-semibold mb-2">Requirements Analysis</h3>
+        <p class="text-text-muted text-sm">AI translates your vision into structured specs that developers (human or AI) can execute on.</p>
+      </div>
+      <div class="bg-bg rounded-xl p-6 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-2xl mb-3">🏗️</div>
+        <h3 class="font-display font-semibold mb-2">Architecture Design</h3>
+        <p class="text-text-muted text-sm">Proper system design from day one. No spaghetti code, no technical debt time bombs.</p>
+      </div>
+      <div class="bg-bg rounded-xl p-6 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-2xl mb-3">🔍</div>
+        <h3 class="font-display font-semibold mb-2">Automated Code Review</h3>
+        <p class="text-text-muted text-sm">Every commit reviewed by AI architect. Catches bugs, security issues, and design flaws before they ship.</p>
+      </div>
+      <div class="bg-bg rounded-xl p-6 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-2xl mb-3">🧪</div>
+        <h3 class="font-display font-semibold mb-2">Test Generation</h3>
+        <p class="text-text-muted text-sm">Automatic test suites for every feature. Edge cases, integration tests, the works.</p>
+      </div>
+      <div class="bg-bg rounded-xl p-6 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-2xl mb-3">⚡</div>
+        <h3 class="font-display font-semibold mb-2">CI/CD Pipeline</h3>
+        <p class="text-text-muted text-sm">Push code, run tests, deploy — all automated. No more "it works on my machine."</p>
+      </div>
+      <div class="bg-bg rounded-xl p-6 border border-border-subtle card-hover animate-on-scroll">
+        <div class="text-2xl mb-3">🛡️</div>
+        <h3 class="font-display font-semibold mb-2">Sandboxed Execution</h3>
+        <p class="text-text-muted text-sm">All AI agents run in isolated environments. Your code, your data, fully auditable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SOCIAL PROOF ========== -->
+<section class="py-24 px-4">
+  <div class="max-w-4xl mx-auto text-center">
+    <h2 class="font-display text-3xl md:text-4xl font-bold mb-16 animate-on-scroll">The Market Is <span class="gradient-text">Screaming for This</span></h2>
+    <div class="grid md:grid-cols-3 gap-8 mb-16">
+      <div class="animate-on-scroll">
+        <div class="font-display text-5xl font-bold gradient-text mb-2 countup" data-target="4004">0</div>
+        <p class="text-text-muted">developers agreed: AI coding lacks quality guardrails</p>
+      </div>
+      <div class="animate-on-scroll">
+        <div class="font-display text-5xl font-bold gradient-text mb-2 countup" data-target="452">0</div>
+        <p class="text-text-muted">upvotes on "non-tech founder sold AI-generated MVP to a bank"</p>
+      </div>
+      <div class="animate-on-scroll">
+        <div class="font-display text-5xl font-bold gradient-text mb-2 countup" data-target="2806">0</div>
+        <p class="text-text-muted">devs watched "Vibe-Coding AI deletes production database"</p>
+      </div>
+    </div>
+    <div class="bg-surface rounded-xl p-8 border border-border-subtle max-w-2xl mx-auto animate-on-scroll">
+      <p class="text-lg italic text-text-muted mb-4">"I had built my entire identity around being a good programmer, and here I was organising Linear tickets and feeling like I'd somehow been demoted into my own company."</p>
+      <p class="text-sm text-accent">— r/startups, 232 upvotes</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PRICING ========== -->
+<section class="py-24 px-4 bg-surface">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="font-display text-3xl md:text-4xl font-bold text-center mb-4 animate-on-scroll">Simple, <span class="gradient-text">Transparent Pricing</span></h2>
+    <p class="text-text-muted text-center mb-16 max-w-2xl mx-auto animate-on-scroll">Cheaper than one freelance developer. More capable than an entire outsourced team.</p>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-bg rounded-xl p-8 border border-border-subtle card-hover animate-on-scroll">
+        <h3 class="font-display text-lg font-semibold mb-1">Starter</h3>
+        <p class="text-text-muted text-sm mb-6">Validate your idea</p>
+        <div class="mb-6"><span class="font-display text-4xl font-bold">$49</span><span class="text-text-muted">/mo</span></div>
+        <ul class="space-y-3 text-sm text-text-muted mb-8">
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> 1 active project</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> Core agent team (PM + Dev + Deploy)</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> Perfect for MVPs</li>
+        </ul>
+        <a href="https://buy.stripe.com/test_dRm3cu7ZubDl3tL7WigrS0j" target="_blank" rel="noopener" onclick="dataLayer.push({event:'deposit_click',tier:'starter'})" class="block text-center px-6 py-3 border border-accent text-accent hover:bg-accent hover:text-white rounded-lg font-display font-semibold transition-colors">Reserve Now — $10 Deposit</a>
+      </div>
+      <div class="bg-bg rounded-xl p-8 pricing-popular glow-accent card-hover animate-on-scroll relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-display font-semibold px-4 py-1 rounded-full">Most Popular</div>
+        <h3 class="font-display text-lg font-semibold mb-1">Pro</h3>
+        <p class="text-text-muted text-sm mb-6">Build for real</p>
+        <div class="mb-6"><span class="font-display text-4xl font-bold">$199</span><span class="text-text-muted">/mo</span></div>
+        <ul class="space-y-3 text-sm text-text-muted mb-8">
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> 3 active projects</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> Full 7-agent team</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> Priority response + architecture review</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> For serious founders</li>
+        </ul>
+        <a href="https://buy.stripe.com/test_dRm3cu7ZubDl3tL7WigrS0j" target="_blank" rel="noopener" onclick="dataLayer.push({event:'deposit_click',tier:'pro'})" class="block text-center px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-lg font-display font-semibold transition-colors">Reserve Now — $10 Deposit</a>
+      </div>
+      <div class="bg-bg rounded-xl p-8 border border-border-subtle card-hover animate-on-scroll">
+        <h3 class="font-display text-lg font-semibold mb-1">Team</h3>
+        <p class="text-text-muted text-sm mb-6">Scale your operation</p>
+        <div class="mb-6"><span class="font-display text-4xl font-bold">$499</span><span class="text-text-muted">/mo</span></div>
+        <ul class="space-y-3 text-sm text-text-muted mb-8">
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> Unlimited projects</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> Team collaboration</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> Custom agent configuration</li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✓</span> For small dev teams</li>
+        </ul>
+        <a href="https://buy.stripe.com/test_dRm3cu7ZubDl3tL7WigrS0j" target="_blank" rel="noopener" onclick="dataLayer.push({event:'deposit_click',tier:'team'})" class="block text-center px-6 py-3 border border-accent text-accent hover:bg-accent hover:text-white rounded-lg font-display font-semibold transition-colors">Reserve Now — $10 Deposit</a>
+      </div>
+    </div>
+    <p class="text-text-muted text-center text-sm mt-8 animate-on-scroll">All deposits are fully refundable. Compare: a single freelance developer costs $5,000–$15,000+ per project.</p>
+  </div>
+</section>
+
+<!-- ========== FAQ ========== -->
+<section class="py-24 px-4">
+  <div class="max-w-3xl mx-auto">
+    <h2 class="font-display text-3xl md:text-4xl font-bold text-center mb-16 animate-on-scroll">Frequently Asked <span class="gradient-text">Questions</span></h2>
+    <div class="space-y-4">
+      <div class="faq-item bg-surface rounded-xl border border-border-subtle animate-on-scroll cursor-pointer" onclick="this.classList.toggle('open')">
+        <div class="flex justify-between items-center p-6"><h3 class="font-display font-semibold">How good is the code quality?</h3><svg class="faq-chevron w-5 h-5 text-text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+        <div class="faq-answer px-6 pb-6"><p class="text-text-muted">Every commit goes through AI architecture review and automated testing. It's not blind generation — there's a quality layer between code and production.</p></div>
+      </div>
+      <div class="faq-item bg-surface rounded-xl border border-border-subtle animate-on-scroll cursor-pointer" onclick="this.classList.toggle('open')">
+        <div class="flex justify-between items-center p-6"><h3 class="font-display font-semibold">I have zero technical background. Can I use this?</h3><svg class="faq-chevron w-5 h-5 text-text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+        <div class="faq-answer px-6 pb-6"><p class="text-text-muted">Yes. Describe what you want in plain language. The AI Product Manager translates your vision into technical requirements. You never touch code.</p></div>
+      </div>
+      <div class="faq-item bg-surface rounded-xl border border-border-subtle animate-on-scroll cursor-pointer" onclick="this.classList.toggle('open')">
+        <div class="flex justify-between items-center p-6"><h3 class="font-display font-semibold">How is this different from Cursor or Copilot?</h3><svg class="faq-chevron w-5 h-5 text-text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+        <div class="faq-answer px-6 pb-6"><p class="text-text-muted">They're code completion tools — you still need to know how to code. We're a complete development team. Requirements, architecture, coding, testing, deployment — all handled.</p></div>
+      </div>
+      <div class="faq-item bg-surface rounded-xl border border-border-subtle animate-on-scroll cursor-pointer" onclick="this.classList.toggle('open')">
+        <div class="flex justify-between items-center p-6"><h3 class="font-display font-semibold">Is my data safe?</h3><svg class="faq-chevron w-5 h-5 text-text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+        <div class="faq-answer px-6 pb-6"><p class="text-text-muted">All code runs in sandboxed environments. You own 100% of the code. Full audit logs for every agent action.</p></div>
+      </div>
+      <div class="faq-item bg-surface rounded-xl border border-border-subtle animate-on-scroll cursor-pointer" onclick="this.classList.toggle('open')">
+        <div class="flex justify-between items-center p-6"><h3 class="font-display font-semibold">What types of projects can I build?</h3><svg class="faq-chevron w-5 h-5 text-text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+        <div class="faq-answer px-6 pb-6"><p class="text-text-muted">Web apps, API services, mobile backends. V1 supports mainstream tech stacks. Tell us what you need and we'll tell you if we can build it.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
+<section class="py-24 px-4 hero-gradient">
+  <div class="max-w-3xl mx-auto text-center">
+    <h2 class="font-display text-3xl md:text-5xl font-bold mb-6 animate-on-scroll">Your idea shouldn't die<br>because you <span class="gradient-text">can't code.</span></h2>
+    <p class="text-text-muted text-lg mb-10 animate-on-scroll">Join the waitlist. Be first to build with your AI dev team.</p>
+    <form class="email-capture-form flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto animate-on-scroll" onsubmit="return submitEmail(event)">
+      <input type="email" name="email" placeholder="Enter your email" required class="flex-1 px-5 py-3.5 rounded-lg bg-surface border border-border-subtle text-text-primary placeholder-text-muted text-base" />
+      <button type="submit" onclick="dataLayer.push({event: 'cta_click'})" class="px-7 py-3.5 bg-accent hover:bg-accent-hover text-white font-display font-semibold rounded-lg transition-colors whitespace-nowrap">Get Notified + Reserve Yours</button>
+    </form>
+    <p class="form-message text-accent" style="display:none"></p>
+  </div>
+</section>
+
+<footer class="py-8 px-4 border-t border-border-subtle">
+  <p class="text-center text-text-muted text-sm">&copy; 2026 AI Dev Agent. All rights reserved.</p>
+</footer>
+
+<script>
+const API_BASE = 'http://192.168.31.229:3000';
+const IDEA_ID = 'd67a54ba-2acb-4458-b786-798b8056b4db';
+const LP_ID = 'e5bb1f68-4274-4eae-bd92-81378197abd2';
+
+function getUTM() {
+  const p = new URLSearchParams(window.location.search);
+  return { utm_source: p.get('utm_source')||'', utm_medium: p.get('utm_medium')||'', utm_campaign: p.get('utm_campaign')||'' };
+}
+
+async function submitEmail(e) {
+  e.preventDefault();
+  const form = e.target, email = form.email.value;
+  const msg = form.querySelector('.form-message'), btn = form.querySelector('button');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  try {
+    const res = await fetch(API_BASE + '/api/leads', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email, idea_id: IDEA_ID, landing_page_id: LP_ID || undefined, ...getUTM() })
+    });
+    if (res.ok) { dataLayer.push({event:'email_submit'}); msg.textContent='✓ You\'re on the list!'; msg.style.display='block'; form.email.value=''; }
+    else { throw new Error('Failed'); }
+  } catch { msg.textContent='Something went wrong. Please try again.'; msg.style.display='block'; }
+  finally { btn.disabled=false; btn.textContent='Get Notified + Reserve Yours'; }
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); } });
+}, { threshold: 0.15 });
+document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+function countUp(el, target, duration=1500) {
+  const start = performance.now();
+  const update = (time) => { const p = Math.min((time-start)/duration,1); const ease=1-Math.pow(1-p,3); el.textContent=Math.floor(ease*target).toLocaleString(); if(p<1) requestAnimationFrame(update); };
+  requestAnimationFrame(update);
+}
+const countObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) { countUp(entry.target, parseInt(entry.target.dataset.target)); countObserver.unobserve(entry.target); } });
+}, { threshold: 0.5 });
+document.querySelectorAll('.countup').forEach(el => countObserver.observe(el));
+
+(function(){ var fired=false; window.addEventListener('scroll', function(){ if(fired) return; if((window.scrollY+window.innerHeight)/document.documentElement.scrollHeight>=0.5){ fired=true; dataLayer.push({event:'scroll_50'}); } }); })();
+</script>
+</body>
+</html>
+
