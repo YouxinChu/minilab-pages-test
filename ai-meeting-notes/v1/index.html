@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Meeting Notes Assistant — Never Lose an Action Item Again</title>
+<meta name="description" content="AI-powered meeting assistant that auto-transcribes, extracts action items, and sends follow-up reminders. No bot joins your meeting. Free to start.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFBFC;--bg-white:#FFFFFF;--text:#1A1A2E;--text-muted:#64748B;
+  --accent:#2563EB;--accent-hover:#1D4ED8;--success:#10B981;--success-hover:#059669;
+  --border:#E2E8F0;--card-shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --card-shadow-hover:0 10px 25px rgba(0,0,0,0.08);
+  --radius:12px;--radius-lg:16px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);line-height:1.7;-webkit-font-smoothing:antialiased}
+.container{max-width:1120px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}
+img{max-width:100%;display:block}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,251,252,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+nav .container{display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-weight:700;font-size:1.125rem;color:var(--text);display:flex;align-items:center;gap:8px}
+.nav-logo svg{width:28px;height:28px}
+.nav-links{display:flex;gap:32px;align-items:center}
+.nav-links a{color:var(--text-muted);font-size:0.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 24px;border-radius:8px;font-weight:600;font-size:0.875rem;border:none;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:var(--success-hover);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn-outline:hover{background:var(--accent);color:#fff}
+.btn-lg{padding:14px 32px;font-size:1rem;border-radius:10px}
+
+/* HERO */
+.hero{padding:120px 0 80px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:#EFF6FF;color:var(--accent);font-size:0.8125rem;font-weight:600;padding:6px 14px;border-radius:100px;margin-bottom:24px}
+.hero-badge svg{width:16px;height:16px}
+.hero h1{font-size:clamp(2.25rem,5vw,3.5rem);font-weight:700;line-height:1.15;letter-spacing:-0.02em;max-width:800px;margin:0 auto 20px}
+.hero h1 span{color:var(--accent)}
+.hero p{font-size:1.125rem;color:var(--text-muted);max-width:600px;margin:0 auto 36px;line-height:1.7}
+.hero-ctas{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.hero-stats{display:flex;gap:48px;justify-content:center;margin-top:56px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat .num{font-family:'JetBrains Mono',monospace;font-size:1.75rem;font-weight:700;color:var(--accent)}
+.hero-stat .label{font-size:0.8125rem;color:var(--text-muted);margin-top:4px}
+
+/* PAIN SECTION */
+.pain{padding:80px 0;background:var(--bg-white)}
+.section-label{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:12px;text-align:center}
+.section-title{font-size:clamp(1.75rem,3.5vw,2.5rem);font-weight:700;text-align:center;letter-spacing:-0.02em;margin-bottom:16px}
+.section-sub{font-size:1.0625rem;color:var(--text-muted);text-align:center;max-width:600px;margin:0 auto 48px}
+.pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.pain-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:28px;transition:box-shadow .25s,transform .25s}
+.pain-card:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-2px)}
+.pain-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:1.5rem}
+.pain-card h3{font-size:1.0625rem;font-weight:600;margin-bottom:8px}
+.pain-card p{font-size:0.9375rem;color:var(--text-muted);line-height:1.65}
+.pain-card .stat{font-family:'JetBrains Mono',monospace;font-size:0.8125rem;color:var(--accent);font-weight:500;margin-top:12px}
+
+/* FEATURES */
+.features{padding:80px 0}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px}
+.feature-card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;transition:box-shadow .25s,transform .25s}
+.feature-card:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-2px)}
+.feature-num{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--accent);font-weight:500;margin-bottom:12px}
+.feature-card h3{font-size:1.125rem;font-weight:600;margin-bottom:10px}
+.feature-card p{font-size:0.9375rem;color:var(--text-muted);line-height:1.65}
+.feature-card .tag{display:inline-block;margin-top:14px;font-size:0.75rem;font-weight:600;padding:4px 10px;border-radius:6px;background:#F0FDF4;color:var(--success)}
+
+/* HOW IT WORKS */
+.how{padding:80px 0;background:var(--bg-white)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:32px;margin-top:48px}
+.step{text-align:center;position:relative}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.125rem;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px}
+.step h3{font-size:1rem;font-weight:600;margin-bottom:8px}
+.step p{font-size:0.875rem;color:var(--text-muted);line-height:1.6;max-width:240px;margin:0 auto}
+
+/* PRICING */
+.pricing{padding:80px 0}
+.pricing-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;max-width:720px;margin:0 auto}
+.price-card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;text-align:center;position:relative;transition:box-shadow .25s}
+.price-card.featured{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--card-shadow-hover)}
+.price-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:0.75rem;font-weight:600;padding:4px 14px;border-radius:100px}
+.price-card h3{font-size:1.125rem;font-weight:600;margin-bottom:8px}
+.price-card .price{font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;margin:16px 0 4px}
+.price-card .price span{font-size:1rem;font-weight:400;color:var(--text-muted)}
+.price-card .price-sub{font-size:0.875rem;color:var(--text-muted);margin-bottom:24px}
+.price-features{list-style:none;text-align:left;margin-bottom:28px}
+.price-features li{padding:8px 0;font-size:0.9375rem;color:var(--text);display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--border)}
+.price-features li:last-child{border:none}
+.price-features li::before{content:'✓';color:var(--success);font-weight:700;flex-shrink:0}
+.price-card .btn{width:100%}
+
+/* FAQ */
+.faq{padding:80px 0;background:var(--bg-white)}
+.faq-list{max-width:680px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--border);padding:20px 0}
+.faq-q{font-weight:600;font-size:1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.faq-q::after{content:'+';font-size:1.25rem;color:var(--text-muted);transition:transform .2s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:0.9375rem;color:var(--text-muted);line-height:1.65}
+.faq-item.open .faq-a{max-height:200px;padding-top:12px}
+
+/* CTA */
+.cta-section{padding:80px 0;text-align:center}
+.cta-box{background:linear-gradient(135deg,#1E3A8A,#2563EB);border-radius:var(--radius-lg);padding:56px 40px;color:#fff;max-width:720px;margin:0 auto}
+.cta-box h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:700;margin-bottom:12px}
+.cta-box p{font-size:1rem;opacity:0.85;margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto}
+.email-form{display:flex;gap:12px;max-width:440px;margin:0 auto;flex-wrap:wrap;justify-content:center}
+.email-form input{flex:1;min-width:220px;padding:14px 18px;border:2px solid rgba(255,255,255,0.25);border-radius:10px;background:rgba(255,255,255,0.1);color:#fff;font-size:0.9375rem;font-family:inherit;outline:none;transition:border-color .2s}
+.email-form input::placeholder{color:rgba(255,255,255,0.5)}
+.email-form input:focus{border-color:rgba(255,255,255,0.6)}
+.email-form button{padding:14px 28px;border-radius:10px;background:#fff;color:var(--accent);font-weight:700;font-size:0.9375rem;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.email-form button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.form-note{font-size:0.75rem;opacity:0.6;margin-top:12px}
+.form-success{display:none;font-size:1rem;font-weight:600;padding:16px}
+
+/* FOOTER */
+footer{padding:40px 0;border-top:1px solid var(--border);text-align:center;font-size:0.8125rem;color:var(--text-muted)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav-links a:not(.btn){display:none}
+  .hero h1{font-size:2rem}
+  .hero-stats{gap:24px}
+  .pain-grid,.features-grid,.steps,.pricing-cards{grid-template-columns:1fr}
+  .email-form{flex-direction:column}
+  .email-form input,.email-form button{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <div class="nav-logo">
+      <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#2563EB"/><path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      MeetingMind
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#cta" class="btn btn-primary">Get Started Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 110 14A7 7 0 018 1zm0 3a1 1 0 00-1 1v3.586l-1.707 1.707a1 1 0 101.414 1.414l2-2A1 1 0 009 8.5V5a1 1 0 00-1-1z"/></svg>
+      Save 5 hours per week, per team
+    </div>
+    <h1>Stop losing action items.<br><span>Start shipping decisions.</span></h1>
+    <p>AI meeting assistant that auto-transcribes, extracts action items with owners &amp; deadlines, and sends follow-up reminders. No bot joins your meeting.</p>
+    <div class="hero-ctas">
+      <a href="#cta" class="btn btn-primary btn-lg">Start Free →</a>
+      <a href="#features" class="btn btn-outline btn-lg">See How It Works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">44%</div><div class="label">of action items never get done</div></div>
+      <div class="hero-stat"><div class="num">72%</div><div class="label">of meetings are ineffective</div></div>
+      <div class="hero-stat"><div class="num">5h</div><div class="label">saved per team per week</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PAIN POINTS -->
+<section class="pain">
+  <div class="container">
+    <div class="section-label">The Problem</div>
+    <h2 class="section-title">Meetings end. Then nothing happens.</h2>
+    <p class="section-sub">Sound familiar? You're not alone. These are the top frustrations from 500+ remote teams.</p>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-icon" style="background:#FEF2F2">📝</div>
+        <h3>Notes are always incomplete</h3>
+        <p>Someone takes notes, misses half the discussion. Key decisions vanish into thin air.</p>
+        <div class="stat">"Silence isn't alignment" — r/projectmanagement</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon" style="background:#FFF7ED">🎯</div>
+        <h3>Action items get lost</h3>
+        <p>Tasks are mentioned but never assigned. No owner, no deadline, no follow-up. Nothing moves.</p>
+        <div class="stat">44% of action items are never completed</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon" style="background:#F0FDF4">😤</div>
+        <h3>Existing tools are creepy</h3>
+        <p>A bot joins your call. Participants feel watched. Privacy concerns kill adoption.</p>
+        <div class="stat">"That creepy bot just joined my meeting"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-label">The Solution</div>
+    <h2 class="section-title">Everything that matters. Nothing that creeps.</h2>
+    <p class="section-sub">MeetingMind works silently in the background — no bot joins your call, no awkward "is it recording?" moments.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-num">01</div>
+        <h3>Auto-Transcription</h3>
+        <p>Real-time transcription for Zoom, Teams, and Google Meet. Speaker identification, timestamps, and 95%+ accuracy — even with accents.</p>
+        <span class="tag">Bot-free</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">02</div>
+        <h3>Action Item Extraction</h3>
+        <p>AI identifies every action item, assigns an owner, and sets a deadline. No more "who was supposed to do that?" moments.</p>
+        <span class="tag">AI-powered</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">03</div>
+        <h3>Follow-Up Reminders</h3>
+        <p>Automatic reminders via Slack, email, or Teams. Action items don't just get noted — they get done.</p>
+        <span class="tag">Automated</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">04</div>
+        <h3>Meeting Summaries</h3>
+        <p>Key decisions, discussion topics, and outcomes — distilled into a 2-minute read. Skip the meeting, keep the context.</p>
+        <span class="tag">Async-friendly</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">05</div>
+        <h3>Searchable Archive</h3>
+        <p>Every meeting, fully searchable. Find "what did we decide about pricing in March?" in seconds, not hours.</p>
+        <span class="tag">Instant recall</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">06</div>
+        <h3>Privacy-First Design</h3>
+        <p>No bot joins your meeting. No biometric data collected. SOC 2 compliant. Your conversations stay yours.</p>
+        <span class="tag">Compliant</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="container">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">Three steps. Zero friction.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Connect your calendar</h3>
+        <p>Link Google Calendar or Outlook. MeetingMind auto-detects your meetings.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Meet as usual</h3>
+        <p>No bot joins. No setup per call. It works silently in the background.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Get your digest</h3>
+        <p>Summary, action items, and follow-ups delivered to Slack or email within minutes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">Start free. Upgrade when you're ready.</h2>
+    <p class="section-sub">No credit card required. No surprise charges. Cancel anytime.</p>
+    <div class="pricing-cards">
+      <div class="price-card">
+        <h3>Free</h3>
+        <div class="price">$0<span>/mo</span></div>
+        <div class="price-sub">For individuals getting started</div>
+        <ul class="price-features">
+          <li>5 meetings per month</li>
+          <li>Auto-transcription</li>
+          <li>Meeting summaries</li>
+          <li>Action item extraction</li>
+          <li>7-day archive</li>
+        </ul>
+        <a href="#cta" class="btn btn-outline" style="width:100%">Get Started Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">Most Popular</div>
+        <h3>Pro</h3>
+        <div class="price">$15<span>/user/mo</span></div>
+        <div class="price-sub">For teams that ship decisions</div>
+        <ul class="price-features">
+          <li>Unlimited meetings</li>
+          <li>Everything in Free</li>
+          <li>Follow-up reminders (Slack, email, Teams)</li>
+          <li>Searchable archive (unlimited)</li>
+          <li>Team dashboard &amp; analytics</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#cta" class="btn btn-primary" style="width:100%">Start 14-Day Free Trial</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="section-label">FAQ</div>
+    <h2 class="section-title">Common questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">How does it work without a bot joining my meeting?</div>
+        <div class="faq-a">MeetingMind captures audio through a local desktop app — no visible bot joins your Zoom, Teams, or Meet call. Participants won't even know it's running unless you tell them.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Is it compliant with recording consent laws?</div>
+        <div class="faq-a">Yes. MeetingMind provides configurable consent notifications and supports all-party consent requirements. You control when and how participants are informed.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What platforms are supported?</div>
+        <div class="faq-a">Zoom, Google Meet, and Microsoft Teams. We integrate with Slack, email, Notion, and Jira for action item delivery.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How accurate is the transcription?</div>
+        <div class="faq-a">95%+ accuracy across English accents and dialects, with speaker identification. We use state-of-the-art speech models fine-tuned for meeting contexts.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I try it before committing?</div>
+        <div class="faq-a">Absolutely. The Free plan gives you 5 meetings per month with full features. The Pro plan includes a 14-day free trial — no credit card required.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Ready to stop losing action items?</h2>
+      <p>Join the waitlist and be the first to try MeetingMind when we launch. Free early access for the first 500 teams.</p>
+      <form class="email-form" id="emailForm">
+        <input type="email" placeholder="you@company.com" required id="emailInput">
+        <button type="submit">Join Waitlist</button>
+      </form>
+      <div class="form-note">No spam. Unsubscribe anytime.</div>
+      <div class="form-success" id="formSuccess">🎉 You're on the list! We'll be in touch soon.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>&copy; 2026 MeetingMind. Built for teams that ship.</p>
+  </div>
+</footer>
+
+<script>
+// FAQ toggle
+document.querySelectorAll('.faq-q').forEach(q=>{
+  q.addEventListener('click',()=>{
+    const item=q.parentElement;
+    document.querySelectorAll('.faq-item').forEach(i=>{if(i!==item)i.classList.remove('open')});
+    item.classList.toggle('open');
+  });
+});
+
+// Email form
+document.getElementById('emailForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const email=document.getElementById('emailInput').value;
+  try{
+    // Try MiniLab leads API
+    const base=window.MINILAB_API_BASE||'';
+    if(base){
+      await fetch(base+'/api/leads',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ideaId:'63c539d6-d3f5-4a71-a0eb-eb8e64640ac4',email:email,source:'landing_page'})
+      });
+    }
+  }catch(err){console.log('Lead API unavailable',err);}
+  this.style.display='none';
+  document.querySelector('.form-note').style.display='none';
+  document.getElementById('formSuccess').style.display='block';
+});
+</script>
+
+</body>
+</html>
