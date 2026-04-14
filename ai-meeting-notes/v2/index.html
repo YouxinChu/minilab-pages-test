@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="idea-slug" content="ai-meeting-notes">
+<title>AI Meeting Notes Assistant — Never Miss an Action Item Again</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- GTM placeholder -->
+<script>window.dataLayer = window.dataLayer || [];</script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        bg: '#07070D',
+        surface: '#111119',
+        'surface-2': '#1A1A25',
+        accent: '#3B82F6',
+        'accent-glow': '#60A5FA',
+        text: '#E8E8ED',
+        muted: '#8888A0',
+      },
+      fontFamily: {
+        display: ['"Space Grotesk"', 'sans-serif'],
+        body: ['"DM Sans"', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #07070D; color: #E8E8ED; font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; }
+
+/* Glow orbs */
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; pointer-events: none; }
+.orb-blue { background: #3B82F6; width: 500px; height: 500px; }
+.orb-purple { background: #8B5CF6; width: 400px; height: 400px; }
+
+/* Grid pattern */
+.grid-bg {
+  background-image: linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Scroll animations */
+.animate-on-scroll { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+
+/* Glow border card */
+.glow-card {
+  background: linear-gradient(135deg, #111119 0%, #1A1A25 100%);
+  border: 1px solid rgba(59,130,246,0.15);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.glow-card:hover {
+  border-color: rgba(59,130,246,0.4);
+  box-shadow: 0 0 30px rgba(59,130,246,0.08);
+}
+
+/* CTA button */
+.cta-btn {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(59,130,246,0.3);
+}
+
+/* Stat countup */
+.stat-number { font-variant-numeric: tabular-nums; }
+
+/* FAQ */
+.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.faq-item.open .faq-answer { max-height: 300px; }
+.faq-item.open .faq-icon { transform: rotate(45deg); }
+.faq-icon { transition: transform 0.3s; }
+
+/* Email form */
+.email-input:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+</style>
+</head>
+<body class="grid-bg">
+
+<!-- ===== NAV ===== -->
+<nav class="fixed top-0 w-full z-50 backdrop-blur-md bg-bg/80 border-b border-white/5">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="font-display font-bold text-lg text-text">MeetingMind</span>
+    </div>
+    <a href="#cta" class="cta-btn px-5 py-2 rounded-lg text-white text-sm font-medium">Get Early Access</a>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="relative min-h-screen flex items-center pt-20">
+  <div class="orb orb-blue" style="top:-10%;left:-10%"></div>
+  <div class="orb orb-purple" style="bottom:10%;right:-5%"></div>
+  <div class="max-w-6xl mx-auto px-6 py-24 text-center relative z-10">
+    <div class="inline-block px-4 py-1.5 rounded-full border border-accent/30 bg-accent/5 text-accent text-sm font-medium mb-8">
+      ✦ AI-Powered Meeting Intelligence
+    </div>
+    <h1 class="font-display text-5xl md:text-7xl font-bold leading-tight mb-6 tracking-tight">
+      Your meetings.<br>
+      <span class="bg-gradient-to-r from-accent to-accent-glow bg-clip-text text-transparent">Actually remembered.</span>
+    </h1>
+    <p class="text-muted text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+      Auto-transcribe every meeting, extract action items instantly, and never let a follow-up slip through the cracks. Save 5+ hours per week per team.
+    </p>
+    <form class="email-capture-form flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-6" onsubmit="return submitEmail(event)">
+      <input type="email" name="email" placeholder="Enter your work email" required
+        class="email-input flex-1 px-4 py-3 rounded-lg bg-surface border border-white/10 text-text placeholder-muted text-sm" />
+      <button type="submit" onclick="dataLayer.push({event:'cta_click'})"
+        class="cta-btn px-6 py-3 rounded-lg text-white font-semibold text-sm whitespace-nowrap">
+        Get Early Access
+      </button>
+    </form>
+    <p class="form-message text-sm text-accent" style="display:none"></p>
+    <p class="text-muted/60 text-xs">Free to start · No credit card required · Works with Zoom, Meet & Teams</p>
+
+    <!-- Hero visual: abstract meeting UI mockup via CSS -->
+    <div class="mt-16 relative max-w-3xl mx-auto">
+      <div class="rounded-2xl border border-white/10 bg-surface p-1 shadow-2xl shadow-accent/5">
+        <div class="rounded-xl bg-surface-2 p-6 space-y-4">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+            <span class="text-muted text-xs ml-2">Weekly Standup — Recording</span>
+            <span class="ml-auto px-2 py-0.5 rounded bg-red-500/20 text-red-400 text-xs animate-pulse">● LIVE</span>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="space-y-3">
+              <div class="text-xs text-muted uppercase tracking-wider">Live Transcript</div>
+              <div class="space-y-2 text-sm">
+                <p><span class="text-accent font-medium">Sarah:</span> <span class="text-text/80">We need to finalize the Q3 roadmap by Friday...</span></p>
+                <p><span class="text-purple-400 font-medium">Mike:</span> <span class="text-text/80">I'll handle the API integration timeline...</span></p>
+                <p><span class="text-green-400 font-medium">Lisa:</span> <span class="text-text/80">Design review is blocked on the new specs...</span></p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="text-xs text-muted uppercase tracking-wider">Action Items (Auto-detected)</div>
+              <div class="space-y-2">
+                <div class="flex items-start gap-2 text-sm"><span class="text-accent mt-0.5">→</span><span class="text-text/80">Finalize Q3 roadmap <span class="text-muted text-xs">@Sarah · Due Fri</span></span></div>
+                <div class="flex items-start gap-2 text-sm"><span class="text-accent mt-0.5">→</span><span class="text-text/80">API integration timeline <span class="text-muted text-xs">@Mike · Due Wed</span></span></div>
+                <div class="flex items-start gap-2 text-sm"><span class="text-accent mt-0.5">→</span><span class="text-text/80">Share new design specs <span class="text-muted text-xs">@Lisa · Due Tue</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PAIN POINTS ===== -->
+<section class="py-24 relative">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16 animate-on-scroll">
+      <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Sound familiar?</h2>
+      <p class="text-muted text-lg">The meeting ends. The chaos begins.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glow-card rounded-2xl p-8 animate-on-scroll">
+        <div class="text-4xl mb-4">📝</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Notes are always incomplete</h3>
+        <p class="text-muted leading-relaxed">You're either participating or taking notes — never both. Key decisions slip through while you're scrambling to type.</p>
+      </div>
+      <div class="glow-card rounded-2xl p-8 animate-on-scroll">
+        <div class="text-4xl mb-4">🕳️</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Action items vanish</h3>
+        <p class="text-muted leading-relaxed">44% of action items are forgotten within 24 hours. "Who was supposed to do that?" becomes your team's catchphrase.</p>
+      </div>
+      <div class="glow-card rounded-2xl p-8 animate-on-scroll">
+        <div class="text-4xl mb-4">🔁</div>
+        <h3 class="font-display text-xl font-semibold mb-3">Follow-ups fall through</h3>
+        <p class="text-muted leading-relaxed">Without automated reminders, tasks pile up. The next meeting starts with "Did anyone follow up on...?" — and silence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="py-24 relative" id="how-it-works">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16 animate-on-scroll">
+      <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Three steps. Zero effort.</h2>
+      <p class="text-muted text-lg">Set it once, forget it forever.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="text-center animate-on-scroll">
+        <div class="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-6">
+          <span class="font-display text-2xl font-bold text-accent">1</span>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">Connect your calendar</h3>
+        <p class="text-muted text-sm leading-relaxed">Link Google Calendar or Outlook. MeetingMind auto-joins your scheduled calls — no bot popup, no awkward intros.</p>
+      </div>
+      <div class="text-center animate-on-scroll">
+        <div class="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-6">
+          <span class="font-display text-2xl font-bold text-accent">2</span>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">AI captures everything</h3>
+        <p class="text-muted text-sm leading-relaxed">Real-time transcription, speaker identification, and automatic action item extraction. Every word, every decision, every task.</p>
+      </div>
+      <div class="text-center animate-on-scroll">
+        <div class="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-6">
+          <span class="font-display text-2xl font-bold text-accent">3</span>
+        </div>
+        <h3 class="font-display text-lg font-semibold mb-2">Get smart follow-ups</h3>
+        <p class="text-muted text-sm leading-relaxed">Action items auto-assigned with deadlines. Slack/email reminders before due dates. Nothing falls through the cracks.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="py-24 relative" id="features">
+  <div class="orb orb-blue" style="top:20%;right:-15%"></div>
+  <div class="max-w-6xl mx-auto px-6 relative z-10">
+    <div class="text-center mb-16 animate-on-scroll">
+      <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Built for teams that ship</h2>
+      <p class="text-muted text-lg">Everything you need, nothing you don't.</p>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="glow-card rounded-2xl p-6 animate-on-scroll">
+        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        </div>
+        <h3 class="font-display font-semibold mb-2">Real-time Transcription</h3>
+        <p class="text-muted text-sm leading-relaxed">99% accuracy with speaker labels. Supports 30+ languages. Works with Zoom, Meet, and Teams.</p>
+      </div>
+      <div class="glow-card rounded-2xl p-6 animate-on-scroll">
+        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <h3 class="font-display font-semibold mb-2">Auto Action Items</h3>
+        <p class="text-muted text-sm leading-relaxed">AI detects commitments, assigns owners, and sets deadlines — all without you lifting a finger.</p>
+      </div>
+      <div class="glow-card rounded-2xl p-6 animate-on-scroll">
+        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <h3 class="font-display font-semibold mb-2">Smart Reminders</h3>
+        <p class="text-muted text-sm leading-relaxed">Automated follow-ups via Slack or email. Escalation alerts when deadlines approach. Zero manual tracking.</p>
+      </div>
+      <div class="glow-card rounded-2xl p-6 animate-on-scroll">
+        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3 class="font-display font-semibold mb-2">Searchable Archive</h3>
+        <p class="text-muted text-sm leading-relaxed">"What did we decide about pricing?" — search across all meetings instantly. Full-text + semantic search.</p>
+      </div>
+      <div class="glow-card rounded-2xl p-6 animate-on-scroll">
+        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+        <h3 class="font-display font-semibold mb-2">Meeting Analytics</h3>
+        <p class="text-muted text-sm leading-relaxed">Track talk-time ratios, meeting frequency, and action item completion rates. Data-driven team health.</p>
+      </div>
+      <div class="glow-card rounded-2xl p-6 animate-on-scroll">
+        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 class="font-display font-semibold mb-2">No Bot in Your Call</h3>
+        <p class="text-muted text-sm leading-relaxed">Unlike competitors, we use native integrations — no awkward "bot has joined" moments. Your meetings stay natural.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STATS ===== -->
+<section class="py-20 relative">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="glow-card rounded-2xl p-10 animate-on-scroll">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div>
+          <div class="font-display text-3xl md:text-4xl font-bold text-accent stat-number" data-target="72">0</div>
+          <div class="text-muted text-sm mt-1">% of meetings lack clear outcomes</div>
+        </div>
+        <div>
+          <div class="font-display text-3xl md:text-4xl font-bold text-accent stat-number" data-target="44">0</div>
+          <div class="text-muted text-sm mt-1">% of action items forgotten</div>
+        </div>
+        <div>
+          <div class="font-display text-3xl md:text-4xl font-bold text-accent stat-number" data-target="5">0</div>
+          <div class="text-muted text-sm mt-1">hours saved per week per team</div>
+        </div>
+        <div>
+          <div class="font-display text-3xl md:text-4xl font-bold text-accent stat-number" data-target="99">0</div>
+          <div class="text-muted text-sm mt-1">% transcription accuracy</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section class="py-24 relative" id="pricing">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="text-center mb-16 animate-on-scroll">
+      <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Simple, transparent pricing</h2>
+      <p class="text-muted text-lg">Start free. Upgrade when you're ready.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <div class="glow-card rounded-2xl p-8 animate-on-scroll">
+        <div class="text-muted text-sm font-medium uppercase tracking-wider mb-2">Free</div>
+        <div class="font-display text-4xl font-bold mb-1">$0</div>
+        <div class="text-muted text-sm mb-6">Up to 5 meetings/month</div>
+        <ul class="space-y-3 text-sm text-text/80 mb-8">
+          <li class="flex items-center gap-2"><span class="text-accent">✓</span> Real-time transcription</li>
+          <li class="flex items-center gap-2"><span class="text-accent">✓</span> Basic action item detection</li>
+          <li class="flex items-center gap-2"><span class="text-accent">✓</span> 7-day meeting archive</li>
+          <li class="flex items-center gap-2"><span class="text-muted">—</span><span class="text-muted">Smart reminders</span></li>
+          <li class="flex items-center gap-2"><span class="text-muted">—</span><span class="text-muted">Analytics dashboard</span></li>
+        </ul>
+        <a href="#cta" class="block text-center py-3 rounded-lg border border-accent/30 text-accent font-medium text-sm hover:bg-accent/5 transition">Get Started Free</a>
+      </div>
+      <div class="relative rounded-2xl p-8 animate-on-scroll" style="background:linear-gradient(135deg,#111119,#1A1A25);border:1px solid rgba(59,130,246,0.4);box-shadow:0 0 40px rgba(59,130,246,0.1)">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-accent text-white text-xs font-semibold">POPULAR</div>
+        <div class="text-accent text-sm font-medium uppercase tracking-wider mb-2">Pro</div>
+        <div class="font-display text-4xl font-bold mb-1">$15<span class="text-lg text-muted font-normal">/user/mo</span></div>
+        <div class="text-muted text-sm mb-6">Unlimited meetings</div>
+        <ul class="space-y-3 text-sm text-text/80 mb-8">
+          <li class="flex items-center gap-2"><span class="text-accent">✓</span> Everything in Free</li>
+          <li class="flex items-center gap-2"><span class="text-accent">✓</span> Unlimited meetings & archive</li>
+          <li class="flex items-center gap-2"><span class="text-accent">✓</span> Smart follow-up reminders</li>
+          <li class="flex items-center gap-2"><span class="text-accent">✓</span> Slack & email integrations</li>
+          <li class="flex items-center gap-2"><span class="text-accent">✓</span> Meeting analytics dashboard</li>
+        </ul>
+        <a href="#cta" class="cta-btn block text-center py-3 rounded-lg text-white font-semibold text-sm">Get Early Access</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="py-24 relative" id="faq">
+  <div class="max-w-3xl mx-auto px-6">
+    <div class="text-center mb-16 animate-on-scroll">
+      <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Questions? Answered.</h2>
+    </div>
+    <div class="space-y-3">
+      <div class="faq-item glow-card rounded-xl animate-on-scroll">
+        <button class="w-full flex items-center justify-between p-5 text-left" onclick="this.parentElement.classList.toggle('open')">
+          <span class="font-display font-semibold text-sm">Does a bot join my meeting?</span>
+          <span class="faq-icon text-accent text-xl leading-none">+</span>
+        </button>
+        <div class="faq-answer px-5 pb-5">
+          <p class="text-muted text-sm leading-relaxed">No. MeetingMind uses native platform integrations to capture audio — no bot joins your call, no awkward notifications for participants. It's completely invisible.</p>
+        </div>
+      </div>
+      <div class="faq-item glow-card rounded-xl animate-on-scroll">
+        <button class="w-full flex items-center justify-between p-5 text-left" onclick="this.parentElement.classList.toggle('open')">
+          <span class="font-display font-semibold text-sm">Which platforms are supported?</span>
+          <span class="faq-icon text-accent text-xl leading-none">+</span>
+        </button>
+        <div class="faq-answer px-5 pb-5">
+          <p class="text-muted text-sm leading-relaxed">Zoom, Google Meet, and Microsoft Teams. We're adding Webex and Slack Huddles soon. Connect your calendar and we handle the rest.</p>
+        </div>
+      </div>
+      <div class="faq-item glow-card rounded-xl animate-on-scroll">
+        <button class="w-full flex items-center justify-between p-5 text-left" onclick="this.parentElement.classList.toggle('open')">
+          <span class="font-display font-semibold text-sm">How accurate is the transcription?</span>
+          <span class="faq-icon text-accent text-xl leading-none">+</span>
+        </button>
+        <div class="faq-answer px-5 pb-5">
+          <p class="text-muted text-sm leading-relaxed">99% accuracy for English, with speaker identification. We support 30+ languages and continuously improve with your team's vocabulary and context.</p>
+        </div>
+      </div>
+      <div class="faq-item glow-card rounded-xl animate-on-scroll">
+        <button class="w-full flex items-center justify-between p-5 text-left" onclick="this.parentElement.classList.toggle('open')">
+          <span class="font-display font-semibold text-sm">Is my meeting data secure?</span>
+          <span class="faq-icon text-accent text-xl leading-none">+</span>
+        </button>
+        <div class="faq-answer px-5 pb-5">
+          <p class="text-muted text-sm leading-relaxed">End-to-end encryption, SOC 2 compliant, and your data is never used to train AI models. You own your data — delete anytime with one click.</p>
+        </div>
+      </div>
+      <div class="faq-item glow-card rounded-xl animate-on-scroll">
+        <button class="w-full flex items-center justify-between p-5 text-left" onclick="this.parentElement.classList.toggle('open')">
+          <span class="font-display font-semibold text-sm">Can I try it for free?</span>
+          <span class="faq-icon text-accent text-xl leading-none">+</span>
+        </button>
+        <div class="faq-answer px-5 pb-5">
+          <p class="text-muted text-sm leading-relaxed">Yes! The free plan includes 5 meetings per month with full transcription and basic action items. No credit card required. Upgrade to Pro anytime for unlimited meetings and smart reminders.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA ===== -->
+<section class="py-24 relative" id="cta">
+  <div class="orb orb-purple" style="top:0;left:30%"></div>
+  <div class="max-w-3xl mx-auto px-6 text-center relative z-10">
+    <div class="animate-on-scroll">
+      <h2 class="font-display text-3xl md:text-5xl font-bold mb-6">Stop losing decisions.<br>Start shipping faster.</h2>
+      <p class="text-muted text-lg mb-10 max-w-xl mx-auto">Join teams who've reclaimed 5+ hours every week. Early access is free — no credit card, no commitment.</p>
+      <form class="email-capture-form flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-4" onsubmit="return submitEmail(event)">
+        <input type="email" name="email" placeholder="Enter your work email" required
+          class="email-input flex-1 px-4 py-3 rounded-lg bg-surface border border-white/10 text-text placeholder-muted text-sm" />
+        <button type="submit" onclick="dataLayer.push({event:'cta_click'})"
+          class="cta-btn px-6 py-3 rounded-lg text-white font-semibold text-sm whitespace-nowrap">
+          Get Early Access
+        </button>
+      </form>
+      <p class="form-message text-sm text-accent" style="display:none"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="py-10 border-t border-white/5">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded bg-accent flex items-center justify-center">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="font-display font-bold text-sm text-text">MeetingMind</span>
+    </div>
+    <p class="text-muted text-xs">© 2026 MeetingMind. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+const API_BASE = 'http://192.168.31.229:3000';
+const IDEA_ID = '63c539d6-d3f5-4a71-a0eb-eb8e64640ac4';
+const LP_ID = 'c5609c3d-605c-49f3-9ad7-5ea2a7ff2ed5';
+
+function getUTM() {
+  const p = new URLSearchParams(window.location.search);
+  return { utm_source: p.get('utm_source')||'', utm_medium: p.get('utm_medium')||'', utm_campaign: p.get('utm_campaign')||'' };
+}
+
+async function submitEmail(e) {
+  e.preventDefault();
+  const form = e.target;
+  const email = form.email.value;
+  const msg = form.querySelector('.form-message');
+  const btn = form.querySelector('button');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+  try {
+    const res = await fetch(API_BASE + '/api/leads', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, idea_id: IDEA_ID, landing_page_id: LP_ID || undefined, ...getUTM() })
+    });
+    if (res.ok) {
+      dataLayer.push({event:'email_submit'});
+      msg.textContent = '✓ You\'re on the list!';
+      msg.style.display = 'block';
+      form.email.value = '';
+    } else { throw new Error('Failed'); }
+  } catch {
+    msg.textContent = 'Something went wrong. Please try again.';
+    msg.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Get Early Access';
+  }
+}
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+// Countup
+function countUp(el, target, suffix, duration) {
+  duration = duration || 1500;
+  suffix = suffix || '';
+  const start = performance.now();
+  const update = (time) => {
+    const progress = Math.min((time - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(ease * target) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      const suffix = el.dataset.suffix || '';
+      countUp(el, target, suffix);
+      statObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stat-number').forEach(el => statObserver.observe(el));
+
+// Scroll 50%
+(function() {
+  var fired = false;
+  window.addEventListener('scroll', function() {
+    if (fired) return;
+    var pct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
+    if (pct >= 0.5) { fired = true; dataLayer.push({event:'scroll_50'}); }
+  });
+})();
+</script>
+</body>
+</html>
